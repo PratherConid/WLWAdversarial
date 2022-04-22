@@ -1,0 +1,232 @@
+
+Using cuda device
+Files already downloaded and verified
+Files already downloaded and verified
+Shape of X [N, C, H, W]: torch.Size([32, 3, 32, 32])
+Shape of y: torch.Size([32]) torch.int64
+Epoch 1
+-------------------------------
+/root/miniconda3/envs/myconda/lib/python3.8/site-packages/torch/nn/modules/container.py:141: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  input = module(input)
+loss: 2.300175  gradient loss: 2.280079  total loss: 2.414179  [    0/50000]
+loss: 1.942718  gradient loss: 3.685966  total loss: 2.127016  [ 6400/50000]
+loss: 1.943070  gradient loss: 7.939450  total loss: 2.340042  [12800/50000]
+loss: 1.996298  gradient loss: 12.693866  total loss: 2.630991  [19200/50000]
+loss: 1.925230  gradient loss: 11.297461  total loss: 2.490103  [25600/50000]
+loss: 1.905564  gradient loss: 17.394217  total loss: 2.775275  [32000/50000]
+loss: 1.902518  gradient loss: 11.993939  total loss: 2.502215  [38400/50000]
+loss: 1.881316  gradient loss: 6.701108  total loss: 2.216372  [44800/50000]
+Test Error: 
+ Accuracy: 59.2%, Avg loss: 1.868077, Avg Gradient loss: 17.116786 
+
+Epoch 2
+-------------------------------
+loss: 1.822284  gradient loss: 18.958382  total loss: 2.770203  [    0/50000]
+loss: 1.859105  gradient loss: 10.373503  total loss: 2.377780  [ 6400/50000]
+loss: 1.780601  gradient loss: 43.502335  total loss: 3.955718  [12800/50000]
+loss: 1.896830  gradient loss: 19.067574  total loss: 2.850208  [19200/50000]
+loss: 1.794079  gradient loss: 27.489176  total loss: 3.168538  [25600/50000]
+loss: 1.874352  gradient loss: 25.659817  total loss: 3.157342  [32000/50000]
+loss: 1.773625  gradient loss: 19.641186  total loss: 2.755684  [38400/50000]
+loss: 1.827607  gradient loss: 18.329670  total loss: 2.744090  [44800/50000]
+Test Error: 
+ Accuracy: 64.4%, Avg loss: 1.815287, Avg Gradient loss: 25.981147 
+
+Epoch 3
+-------------------------------
+loss: 1.690485  gradient loss: 27.276247  total loss: 3.054298  [    0/50000]
+loss: 1.795550  gradient loss: 26.171974  total loss: 3.104149  [ 6400/50000]
+loss: 1.739604  gradient loss: 52.844891  total loss: 4.381848  [12800/50000]
+loss: 1.872493  gradient loss: 42.830322  total loss: 4.014009  [19200/50000]
+loss: 1.760513  gradient loss: 16.141304  total loss: 2.567579  [25600/50000]
+loss: 1.825706  gradient loss: 57.226185  total loss: 4.687015  [32000/50000]
+loss: 1.707505  gradient loss: 27.790478  total loss: 3.097028  [38400/50000]
+loss: 1.804936  gradient loss: 18.260643  total loss: 2.717968  [44800/50000]
+Test Error: 
+ Accuracy: 68.5%, Avg loss: 1.775754, Avg Gradient loss: 31.758150 
+
+Epoch 4
+-------------------------------
+loss: 1.598495  gradient loss: 23.296524  total loss: 2.763321  [    0/50000]
+loss: 1.744008  gradient loss: 32.918518  total loss: 3.389934  [ 6400/50000]
+loss: 1.653889  gradient loss: 20.748325  total loss: 2.691306  [12800/50000]
+loss: 1.815089  gradient loss: 47.026596  total loss: 4.166419  [19200/50000]
+loss: 1.721754  gradient loss: 32.927940  total loss: 3.368151  [25600/50000]
+loss: 1.738204  gradient loss: 14.703138  total loss: 2.473361  [32000/50000]
+loss: 1.742691  gradient loss: 12.416006  total loss: 2.363492  [38400/50000]
+loss: 1.798491  gradient loss: 33.239475  total loss: 3.460465  [44800/50000]
+Test Error: 
+ Accuracy: 67.8%, Avg loss: 1.780746, Avg Gradient loss: 43.533802 
+
+Epoch 5
+-------------------------------
+loss: 1.641277  gradient loss: 49.158142  total loss: 4.099184  [    0/50000]
+loss: 1.785964  gradient loss: 68.948624  total loss: 5.233396  [ 6400/50000]
+loss: 1.640639  gradient loss: 13.357229  total loss: 2.308500  [12800/50000]
+loss: 1.742742  gradient loss: 56.425419  total loss: 4.564013  [19200/50000]
+loss: 1.710051  gradient loss: 41.817017  total loss: 3.800902  [25600/50000]
+loss: 1.771660  gradient loss: 23.346832  total loss: 2.939002  [32000/50000]
+loss: 1.764091  gradient loss: 75.018448  total loss: 5.515013  [38400/50000]
+loss: 1.772980  gradient loss: 26.119707  total loss: 3.078966  [44800/50000]
+Test Error: 
+ Accuracy: 72.2%, Avg loss: 1.738210, Avg Gradient loss: 45.451694 
+
+Epoch 6
+-------------------------------
+loss: 1.563256  gradient loss: 10.327721  total loss: 2.079642  [    0/50000]
+loss: 1.786985  gradient loss: 38.587364  total loss: 3.716353  [ 6400/50000]
+loss: 1.616312  gradient loss: 60.949802  total loss: 4.663803  [12800/50000]
+loss: 1.764002  gradient loss: 29.798939  total loss: 3.253949  [19200/50000]
+loss: 1.712321  gradient loss: 58.392025  total loss: 4.631923  [25600/50000]
+loss: 1.703317  gradient loss: 44.968220  total loss: 3.951728  [32000/50000]
+loss: 1.664464  gradient loss: 30.905666  total loss: 3.209748  [38400/50000]
+loss: 1.768191  gradient loss: 50.465595  total loss: 4.291471  [44800/50000]
+Test Error: 
+ Accuracy: 70.7%, Avg loss: 1.752451, Avg Gradient loss: 51.884181 
+
+Epoch 7
+-------------------------------
+loss: 1.546943  gradient loss: 6.521801  total loss: 1.873033  [    0/50000]
+loss: 1.725098  gradient loss: 30.931921  total loss: 3.271694  [ 6400/50000]
+loss: 1.601900  gradient loss: 57.941917  total loss: 4.498996  [12800/50000]
+loss: 1.742489  gradient loss: 28.541389  total loss: 3.169558  [19200/50000]
+loss: 1.617260  gradient loss: 2.774609  total loss: 1.755991  [25600/50000]
+loss: 1.744282  gradient loss: 42.424793  total loss: 3.865522  [32000/50000]
+loss: 1.623548  gradient loss: 49.789932  total loss: 4.113045  [38400/50000]
+loss: 1.754354  gradient loss: 51.114235  total loss: 4.310065  [44800/50000]
+Test Error: 
+ Accuracy: 73.2%, Avg loss: 1.728698, Avg Gradient loss: 48.692364 
+
+Epoch 8
+-------------------------------
+loss: 1.549161  gradient loss: 22.207600  total loss: 2.659541  [    0/50000]
+loss: 1.732102  gradient loss: 48.689007  total loss: 4.166553  [ 6400/50000]
+loss: 1.657963  gradient loss: 23.706213  total loss: 2.843274  [12800/50000]
+loss: 1.722207  gradient loss: 51.799728  total loss: 4.312193  [19200/50000]
+loss: 1.673319  gradient loss: 36.782681  total loss: 3.512453  [25600/50000]
+loss: 1.669649  gradient loss: 95.447800  total loss: 6.442039  [32000/50000]
+loss: 1.576151  gradient loss: 56.490208  total loss: 4.400662  [38400/50000]
+loss: 1.661483  gradient loss: 65.169777  total loss: 4.919972  [44800/50000]
+Test Error: 
+ Accuracy: 78.0%, Avg loss: 1.680314, Avg Gradient loss: 48.675861 
+
+Epoch 9
+-------------------------------
+loss: 1.550746  gradient loss: 28.479759  total loss: 2.974734  [    0/50000]
+loss: 1.683744  gradient loss: 49.331249  total loss: 4.150306  [ 6400/50000]
+loss: 1.657051  gradient loss: 90.748756  total loss: 6.194489  [12800/50000]
+loss: 1.666099  gradient loss: 21.059978  total loss: 2.719098  [19200/50000]
+loss: 1.581176  gradient loss: 10.722898  total loss: 2.117321  [25600/50000]
+loss: 1.619898  gradient loss: 36.963116  total loss: 3.468054  [32000/50000]
+loss: 1.540736  gradient loss: 47.932240  total loss: 3.937348  [38400/50000]
+loss: 1.659552  gradient loss: 33.829220  total loss: 3.351013  [44800/50000]
+Test Error: 
+ Accuracy: 79.0%, Avg loss: 1.669961, Avg Gradient loss: 55.546773 
+
+Epoch 10
+-------------------------------
+loss: 1.527179  gradient loss: 9.520120  total loss: 2.003185  [    0/50000]
+loss: 1.726380  gradient loss: 28.257629  total loss: 3.139261  [ 6400/50000]
+loss: 1.583897  gradient loss: 51.251358  total loss: 4.146465  [12800/50000]
+loss: 1.671653  gradient loss: 96.630531  total loss: 6.503180  [19200/50000]
+loss: 1.563317  gradient loss: 28.236477  total loss: 2.975141  [25600/50000]
+loss: 1.617709  gradient loss: 99.177330  total loss: 6.576576  [32000/50000]
+loss: 1.591967  gradient loss: 35.914444  total loss: 3.387689  [38400/50000]
+loss: 1.586668  gradient loss: 26.557568  total loss: 2.914546  [44800/50000]
+Test Error: 
+ Accuracy: 80.8%, Avg loss: 1.653998, Avg Gradient loss: 64.414263 
+
+Epoch 11
+-------------------------------
+loss: 1.514029  gradient loss: 9.157341  total loss: 1.971896  [    0/50000]
+loss: 1.700264  gradient loss: 113.403717  total loss: 7.370450  [ 6400/50000]
+loss: 1.533890  gradient loss: 30.956497  total loss: 3.081715  [12800/50000]
+loss: 1.682198  gradient loss: 60.279728  total loss: 4.696185  [19200/50000]
+loss: 1.543798  gradient loss: 20.960613  total loss: 2.591829  [25600/50000]
+loss: 1.585842  gradient loss: 91.046326  total loss: 6.138158  [32000/50000]
+loss: 1.568623  gradient loss: 34.879326  total loss: 3.312590  [38400/50000]
+loss: 1.649430  gradient loss: 6.453750  total loss: 1.972118  [44800/50000]
+Test Error: 
+ Accuracy: 80.8%, Avg loss: 1.651169, Avg Gradient loss: 69.312652 
+
+Epoch 12
+-------------------------------
+loss: 1.492396  gradient loss: 65.201500  total loss: 4.752471  [    0/50000]
+loss: 1.687295  gradient loss: 66.169670  total loss: 4.995779  [ 6400/50000]
+loss: 1.528814  gradient loss: 4.673848  total loss: 1.762507  [12800/50000]
+loss: 1.700718  gradient loss: 149.688354  total loss: 9.185136  [19200/50000]
+loss: 1.576453  gradient loss: 110.742287  total loss: 7.113567  [25600/50000]
+loss: 1.575965  gradient loss: 17.582943  total loss: 2.455112  [32000/50000]
+loss: 1.522774  gradient loss: 2.764839  total loss: 1.661016  [38400/50000]
+loss: 1.619511  gradient loss: 3.955278  total loss: 1.817275  [44800/50000]
+Test Error: 
+ Accuracy: 80.3%, Avg loss: 1.656250, Avg Gradient loss: 73.515687 
+
+Epoch 13
+-------------------------------
+loss: 1.493718  gradient loss: 0.502369  total loss: 1.518837  [    0/50000]
+loss: 1.651373  gradient loss: 73.202606  total loss: 5.311503  [ 6400/50000]
+loss: 1.502457  gradient loss: 18.221590  total loss: 2.413537  [12800/50000]
+loss: 1.669922  gradient loss: 84.360733  total loss: 5.887959  [19200/50000]
+loss: 1.523628  gradient loss: 0.451155  total loss: 1.546186  [25600/50000]
+loss: 1.524191  gradient loss: 0.108537  total loss: 1.529618  [32000/50000]
+loss: 1.536601  gradient loss: 44.553043  total loss: 3.764254  [38400/50000]
+loss: 1.613489  gradient loss: 15.984417  total loss: 2.412710  [44800/50000]
+Test Error: 
+ Accuracy: 81.3%, Avg loss: 1.647842, Avg Gradient loss: 73.885862 
+
+Epoch 14
+-------------------------------
+loss: 1.463244  gradient loss: 0.869681  total loss: 1.506728  [    0/50000]
+loss: 1.707593  gradient loss: 7.618180  total loss: 2.088502  [ 6400/50000]
+loss: 1.515514  gradient loss: 26.994316  total loss: 2.865230  [12800/50000]
+loss: 1.721770  gradient loss: 203.555359  total loss: 11.899537  [19200/50000]
+loss: 1.529807  gradient loss: 13.618654  total loss: 2.210740  [25600/50000]
+loss: 1.568243  gradient loss: 59.446205  total loss: 4.540554  [32000/50000]
+loss: 1.515457  gradient loss: 33.149879  total loss: 3.172951  [38400/50000]
+loss: 1.575903  gradient loss: 30.637405  total loss: 3.107773  [44800/50000]
+Test Error: 
+ Accuracy: 82.2%, Avg loss: 1.638849, Avg Gradient loss: 65.310775 
+
+Epoch 15
+-------------------------------
+loss: 1.540546  gradient loss: 39.185040  total loss: 3.499798  [    0/50000]
+loss: 1.647313  gradient loss: 82.003426  total loss: 5.747484  [ 6400/50000]
+loss: 1.559822  gradient loss: 9.087114  total loss: 2.014178  [12800/50000]
+loss: 1.588924  gradient loss: 34.347992  total loss: 3.306324  [19200/50000]
+loss: 1.508365  gradient loss: 36.499542  total loss: 3.333342  [25600/50000]
+loss: 1.523734  gradient loss: 8.575568  total loss: 1.952512  [32000/50000]
+loss: 1.521067  gradient loss: 20.650024  total loss: 2.553568  [38400/50000]
+loss: 1.596023  gradient loss: 28.906202  total loss: 3.041333  [44800/50000]
+Test Error: 
+ Accuracy: 81.4%, Avg loss: 1.646412, Avg Gradient loss: 102.691322 
+
+Epoch 16
+-------------------------------
+loss: 1.487922  gradient loss: 81.826317  total loss: 5.579238  [    0/50000]
+loss: 1.681762  gradient loss: 4.442153  total loss: 1.903870  [ 6400/50000]
+loss: 1.509884  gradient loss: 93.972672  total loss: 6.208518  [12800/50000]
+loss: 1.590260  gradient loss: 177.065567  total loss: 10.443539  [19200/50000]
+loss: 1.527474  gradient loss: 66.303261  total loss: 4.842638  [25600/50000]
+loss: 1.524126  gradient loss: 3.156104  total loss: 1.681931  [32000/50000]
+loss: 1.497878  gradient loss: 16.340355  total loss: 2.314896  [38400/50000]
+loss: 1.584791  gradient loss: 17.644600  total loss: 2.467021  [44800/50000]
+Test Error: 
+ Accuracy: 82.3%, Avg loss: 1.638283, Avg Gradient loss: 83.564318 
+
+Epoch 17
+-------------------------------
+loss: 1.500736  gradient loss: 75.573059  total loss: 5.279388  [    0/50000]
+loss: 1.679555  gradient loss: 0.515357  total loss: 1.705322  [ 6400/50000]
+loss: 1.553608  gradient loss: 40.977997  total loss: 3.602508  [12800/50000]
+loss: 1.612391  gradient loss: 18.185869  total loss: 2.521684  [19200/50000]
+loss: 1.492736  gradient loss: 0.173705  total loss: 1.501422  [25600/50000]
+loss: 1.540028  gradient loss: 59.937737  total loss: 4.536915  [32000/50000]
+loss: 1.573311  gradient loss: 75.118416  total loss: 5.329232  [38400/50000]
+loss: 1.562859  gradient loss: 40.129990  total loss: 3.569358  [44800/50000]
+Test Error: 
+ Accuracy: 81.8%, Avg loss: 1.643047, Avg Gradient loss: 102.665840 
+
+Epoch 18
+-------------------------------
+loss: 1.477545  gradient loss: 73.869858  total loss: 5.171038  [    0/50000]

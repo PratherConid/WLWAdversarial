@@ -105,29 +105,29 @@ class Dist_Conv2D(nn.Module):
             w_diff_x = torch.norm(torch.abs(w_diff_x) + eps, dim=-1, p=self.p)
         return torch.add(w_diff_x, self.bias)
 
-class Lp_Conv2D_BT(nn.Module):
+class Minimax_Conv2D(nn.Module):
     torch.nn.Conv2d
-    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, tree_depth=2, p=torch.inf, branch=3):
+    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, branch=3):
         super().__init__()
-        self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.depth, self.p =\
-            in_channels, out_channels, padding, kernel_size, stride, tree_depth, p
+        self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.branch =\
+            in_channels, out_channels, padding, kernel_size, stride, branch
         self.accl_sz = in_channels * kernel_size[0] * kernel_size[1]
-        self.conn_num = 1 << self.depth # total number of connections to the convolutional kernel
-        
-        weights = torch.Tensor(out_channels, self.conn_num)
-        self.conn = np.random.randint(0, self.accl_sz, self.out_channels * self.conn_num).astype(np.int64)
+        self.conn = np.random.randint(0, self.accl_sz, self.out_channels * self.branch * self.branch).astype(np.int64)
         self.conn = torch.nn.functional.one_hot(torch.from_numpy(self.conn), num_classes=self.accl_sz)
-        # self.conn.shape = (self.out_channels * self.conn_num, self.accl_sz)
-        self.conn = self.conn.reshape((1, self.out_channels, self.conn_num, self.accl_sz))
+        # self.conn.shape = (self.out_channels, self.branch * self.branch, self.accl_sz)
+        self.conn = self.conn.reshape((1, self.out_channels, self.branch * self.branch, self.accl_sz))
         # summing along the last dimention of self.conn, we get 1
-
-        self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
+        w1 = torch.Tensor(out_channels, self.branch * self.branch)
+        self.w1 = nn.Parameter(w1)
+        w2 = torch.Tensor(out_channels, self.branch)
+        self.w2 = nn.Parameter(w2)
         bias = torch.Tensor(out_channels, 1, 1)
         self.bias = nn.Parameter(bias)
 
         # initialize weights and biases
-        nn.init.kaiming_uniform_(self.weights, a=math.sqrt(5)) # weight init
-        fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weights)
+        nn.init.kaiming_uniform_(self.w1, a=math.sqrt(5)) # weight init
+        nn.init.kaiming_uniform_(self.w2, a=math.sqrt(5))
+        fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.w1)
         bound = 1 / math.sqrt(fan_in)
         nn.init.uniform_(self.bias, -bound, bound)  # bias init
 
@@ -139,19 +139,25 @@ class Lp_Conv2D_BT(nn.Module):
         x_unfold = torch.permute(x_unfold, [0, 2, 3, 1, 4, 5])
         x_unfold = x_unfold.reshape((x_unfold.shape[0], 1) + x_unfold.shape[1:3] + (self.accl_sz,))
         # x_unfold.shape = (batch_size, 1, W_out, H_out, accl_sz)
-        if self.conn_num is not None:
-            conn = self.conn.to(device=x.device)
-            # conn.shape = (1, C_out, conn_num, accl_sz)
-            x_unfold = torch.einsum("bdWHa,dCna->bCWHn", x_unfold, conn.to(dtype=x_unfold.dtype))
-            # x_unfold.shape = (batch_size, C_out, W_out, H_out, conn_num)
 
-        w = self.weights
-        w_conn_shp = (w.shape[0], 1, 1) + w.shape[1:]
-        w = w.reshape(w_conn_shp)
-        # w.shape = (C_out, 1, 1, accl_sz / conn_num)
+        conn = self.conn.to(device=x.device)
+        # conn.shape = (1, C_out, bran * bran, accl_sz)
+        x_unfold = torch.einsum("bdWHa,dCna->bCWHn", x_unfold, conn.to(dtype=x_unfold.dtype))
+        # x_unfold.shape = (batch_size, C_out, W_out, H_out, conn_num)
 
-        w_diff_x = torch.abs(w - x_unfold)
-        # w_diff_x.shape = (batch_size, C_out, W_out, H_out, accl_size / conn_num)
+        w1 = self.w1
+        w1_shp = (w1.shape[0], 1, 1) + w1.shape[1:]
+        w1 = w1.reshape(w1_shp)
+        # w.shape = (C_out, 1, 1, bran * bran)
 
-        w_diff_x = torch.amax(w_diff_x, (-1,))
-        return torch.add(w_diff_x, self.bias)
+        w2 = self.w2
+        w2_shp = (w2.shape[0], 1, 1) + w2.shape[1:]
+        w2 = w2.reshape(w2_shp)
+
+        w_diff_x = x_unfold - w1
+        # w_diff_x.shape = (batch_size, C_out, W_out, H_out, bran * bran)
+
+        ma = torch.amax(w_diff_x.reshape(w_diff_x.shape[:-1] + (self.branch, self.branch)), dim=-1)
+        # ma.shape = (batch_size, C_out, W_out, H_out, bran)
+        mi = torch.amin(ma - w2, dim=-1)
+        return mi

@@ -50,10 +50,10 @@ class Uni_Linear(nn.Module):
 
 class Dist_Conv2D(nn.Module):
     torch.nn.Conv2d
-    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, conn_num=None):
+    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, p=torch.inf, conn_num=None):
         super().__init__()
-        self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.conn_num =\
-            in_channels, out_channels, padding, kernel_size, stride, conn_num
+        self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.conn_num, self.p =\
+            in_channels, out_channels, padding, kernel_size, stride, conn_num, p
         self.accl_sz = in_channels * kernel_size[0] * kernel_size[1]
         if conn_num is not None:
             weights = torch.Tensor(out_channels, self.conn_num)
@@ -93,21 +93,28 @@ class Dist_Conv2D(nn.Module):
         w = w.reshape(w_conn_shp)
         # w.shape = (C_out, 1, 1, accl_sz / conn_num)
 
-        w_diff_x = torch.abs(w - x_unfold)
+        w_diff_x = w - x_unfold
         # w_diff_x.shape = (batch_size, C_out, W_out, H_out, accl_size / conn_num)
 
-        w_diff_x = torch.amax(w_diff_x, (-1,))
+        if self.p == torch.inf:
+            w_diff_x = torch.amax(torch.abs(w_diff_x), dim=-1)
+        elif self.p > 0:
+            w_diff_x = torch.norm(w_diff_x, dim=-1, p = self.p)
+        else:
+            eps=0.01
+            w_diff_x = torch.norm(torch.abs(w_diff_x) + eps, dim=-1, p=self.p)
         return torch.add(w_diff_x, self.bias)
 
 class Lp_Conv2D_BT(nn.Module):
     torch.nn.Conv2d
-    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, tree_depth=2):
+    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, tree_depth=2, p=torch.inf, branch=3):
         super().__init__()
-        self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.depth =\
-            in_channels, out_channels, padding, kernel_size, stride, tree_depth
+        self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.depth, self.p =\
+            in_channels, out_channels, padding, kernel_size, stride, tree_depth, p
         self.accl_sz = in_channels * kernel_size[0] * kernel_size[1]
+        self.conn_num = 1 << self.depth # total number of connections to the convolutional kernel
         
-        weights = torch.Tensor(out_channels, 1 << self.depth)
+        weights = torch.Tensor(out_channels, self.conn_num)
         self.conn = np.random.randint(0, self.accl_sz, self.out_channels * self.conn_num).astype(np.int64)
         self.conn = torch.nn.functional.one_hot(torch.from_numpy(self.conn), num_classes=self.accl_sz)
         # self.conn.shape = (self.out_channels * self.conn_num, self.accl_sz)

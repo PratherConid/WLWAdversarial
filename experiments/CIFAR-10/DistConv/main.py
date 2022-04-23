@@ -31,4 +31,5 @@ for t in range(epochs):
     test(tsd, model, loss_fn)
     if t % 4 == 3:
         torch.save(model.state_dict(), "experiments/CIFAR-10/Classical/epoch_" + str(t) + ".pt")
+    model.set_p(4)
 print("Done!")

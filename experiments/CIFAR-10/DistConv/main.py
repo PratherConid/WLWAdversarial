@@ -27,6 +27,8 @@ trd = train_dataloader(32)
 tsd = test_dataloader(32)
 
 for t in range(epochs):
+    if t > 0:
+        model.lock_SL()
     print(f"Epoch {t+1}\n-------------------------------")
     train(trd, model, loss_fn, optimizer)
     test(tsd, model, loss_fn)

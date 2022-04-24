@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from .layers.Lip_Layer import Dist_Dense, Dist_Conv2D, Minimax_Conv2D, Uni_Linear, Static_Layernorm
+from .layers.Lip_Layer import Dist_Conv2D, Minimax_Conv2D, Uni_Linear, Static_Layernorm
 
 class CIFAR_10_DistConv(nn.Module):
     def __init__(self, p=torch.inf):
@@ -33,6 +33,11 @@ class CIFAR_10_DistConv(nn.Module):
             if type(i) == Dist_Conv2D:
                 i.p = p
 
+    def lock_SL(self):
+        for m in self.linear_cnn_stack.modules():
+            if type(m) == Static_Layernorm:
+                m.locked = True
+
 
 class CIFAR_10_Minimax(nn.Module):
     def __init__(self):
@@ -60,3 +65,8 @@ class CIFAR_10_Minimax(nn.Module):
         for i in list(self.linear_cnn_stack.children()):
             if type(i) == Dist_Conv2D:
                 i.p = p
+
+    def lock_SL(self):
+        for m in self.linear_cnn_stack.modules():
+            if type(m) == Static_Layernorm:
+                m.locked = True

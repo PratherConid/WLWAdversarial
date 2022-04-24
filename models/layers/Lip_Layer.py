@@ -4,28 +4,25 @@ from torch import nn
 import numpy as np
 
 class Static_Layernorm(nn.Module):
-    def __init__(self, gamma_dec=0.2, warmup=200):
+    def __init__(self, gamma=0.99):
         super().__init__()
-        assert gamma_dec > 0 and gamma_dec < 1
-        assert type(warmup) == int and warmup >= 1
+        assert gamma > 0 and gamma < 1
         self.std = 0
         self.avg = 0
         self.cnt = 0
-        self.gamma_dec = gamma_dec
-        self.warmup = warmup
+        self.locked = False
+        self.gamma = gamma
 
     def forward(self, x):
         std = torch.sqrt(torch.var(x))
         avg = torch.mean(x)
-        if self.cnt < self.warmup:
-            self.std = std
-            self.avg = avg
-            return (x - avg) / std
         self.cnt += 1
-        alpha = (self.cnt - self.warmup) ** (-self.gamma_dec)
-        self.std = float(alpha * std + (1 - alpha) * self.std)
-        self.avg = float(alpha * avg + (1 - alpha) * self.avg)
-        return (x - self.avg) / self.std
+        if self.locked:
+            return (x - self.avg) / self.std
+        else:
+            self.std = float((1 - self.gamma) * std + self.gamma * self.std)
+            self.avg = float((1 - self.gamma) * avg + self.gamma * self.avg)
+            return (x - avg) / std
 
 class Dist_Dense(nn.Module):
     def __init__(self, size_in, size_out, p=torch.inf):

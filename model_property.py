@@ -7,4 +7,4 @@ def count_parameters(model):
 
 def static_layernorm_lip_const(model):
     layernorms = [i for i in model.modules() if type(i) == Static_Layernorm]
-    return 1 / product([i.std for i in layernorms])
+    return 1 / product([float(i.std) for i in layernorms])

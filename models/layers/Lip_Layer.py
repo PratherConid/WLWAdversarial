@@ -58,10 +58,8 @@ class Dist_Conv2D(nn.Module):
         if conn_num is not None:
             weights = torch.Tensor(out_channels, self.conn_num)
             self.conn = np.random.randint(0, self.accl_sz, self.out_channels * self.conn_num).astype(np.int64)
-            self.conn = torch.nn.functional.one_hot(torch.from_numpy(self.conn), num_classes=self.accl_sz)
-            # self.conn.shape = (self.out_channels * self.conn_num, self.accl_sz)
-            self.conn = self.conn.reshape((1, self.out_channels, self.conn_num, self.accl_sz))
-            # summing along the last dimention of self.conn, we get 1
+            self.conn = torch.from_numpy(self.conn)
+            # self.conn.shape = (self.out_channels * self.conn_num,)
         else:
             weights = torch.Tensor(out_channels, self.accl_sz)
         self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
@@ -80,13 +78,19 @@ class Dist_Conv2D(nn.Module):
         x_pad = nn.functional.pad(x, (pad_l, pad_r, pad_l, pad_r), "replicate")
         x_unfold = x_pad.unfold(-2, self.kernel_size[0], self.stride).unfold(-2, self.kernel_size[1], self.stride)
         x_unfold = torch.permute(x_unfold, [0, 2, 3, 1, 4, 5])
-        x_unfold = x_unfold.reshape((x_unfold.shape[0], 1) + x_unfold.shape[1:3] + (self.accl_sz,))
-        # x_unfold.shape = (batch_size, 1, W_out, H_out, accl_sz)
         if self.conn_num is not None:
+            x_unfold = x_unfold.reshape(x_unfold.shape[0:3] + (self.accl_sz,))
+            # x_unfold.shape = (batch_size, W_out, H_out, accl_sz)
             conn = self.conn.to(device=x.device)
-            # conn.shape = (1, C_out, conn_num, accl_sz)
-            x_unfold = torch.einsum("bdWHa,dCna->bCWHn", x_unfold, conn.to(dtype=x_unfold.dtype))
+            # conn.shape = (C_out * conn_num)
+            x_unfold = x_unfold[..., conn]
+            x_unfold = x_unfold.reshape(x_unfold.shape[:-1] + (self.out_channels, self.conn_num))
+            # x_unfold.shape = (batch_size, W_out, H_out, C_out, conn_num)
+            x_unfold = torch.permute(x_unfold, [0, 3, 1, 2, 4])
             # x_unfold.shape = (batch_size, C_out, W_out, H_out, conn_num)
+        else:
+            x_unfold = x_unfold.reshape((x_unfold.shape[0], 1) + x_unfold.shape[1:3] + (self.accl_sz,))
+            # x_unfold.shape = (batch_size, 1, W_out, H_out, accl_sz)
 
         w = self.weights
         w_conn_shp = (w.shape[0], 1, 1) + w.shape[1:]
@@ -113,10 +117,8 @@ class Minimax_Conv2D(nn.Module):
             in_channels, out_channels, padding, kernel_size, stride, branch
         self.accl_sz = in_channels * kernel_size[0] * kernel_size[1]
         self.conn = np.random.randint(0, self.accl_sz, self.out_channels * self.branch * self.branch).astype(np.int64)
-        self.conn = torch.nn.functional.one_hot(torch.from_numpy(self.conn), num_classes=self.accl_sz)
-        # self.conn.shape = (self.out_channels, self.branch * self.branch, self.accl_sz)
-        self.conn = self.conn.reshape((1, self.out_channels, self.branch * self.branch, self.accl_sz))
-        # summing along the last dimention of self.conn, we get 1
+        self.conn = torch.from_numpy(self.conn)
+        # self.conn.shape = (self.out_channels * self.branch * self.branch,)
         w1 = torch.Tensor(out_channels, self.branch * self.branch)
         self.w1 = nn.Parameter(w1)
         w2 = torch.Tensor(out_channels, self.branch)
@@ -137,13 +139,16 @@ class Minimax_Conv2D(nn.Module):
         x_pad = nn.functional.pad(x, (pad_l, pad_r, pad_l, pad_r), "replicate")
         x_unfold = x_pad.unfold(-2, self.kernel_size[0], self.stride).unfold(-2, self.kernel_size[1], self.stride)
         x_unfold = torch.permute(x_unfold, [0, 2, 3, 1, 4, 5])
-        x_unfold = x_unfold.reshape((x_unfold.shape[0], 1) + x_unfold.shape[1:3] + (self.accl_sz,))
-        # x_unfold.shape = (batch_size, 1, W_out, H_out, accl_sz)
+        x_unfold = x_unfold.reshape(x_unfold.shape[0:3] + (self.accl_sz,))
+        # x_unfold.shape = (batch_size, W_out, H_out, accl_sz)
 
         conn = self.conn.to(device=x.device)
-        # conn.shape = (1, C_out, bran * bran, accl_sz)
-        x_unfold = torch.einsum("bdWHa,dCna->bCWHn", x_unfold, conn.to(dtype=x_unfold.dtype))
-        # x_unfold.shape = (batch_size, C_out, W_out, H_out, conn_num)
+        # conn.shape = (C_out * bran * bran)
+        x_unfold = x_unfold[..., conn]
+        x_unfold = x_unfold = x_unfold.reshape(x_unfold.shape[:-1] + (self.out_channels, self.branch * self.branch))
+        # x_unfold.shape = (batch_size, W_out, H_out, C_out, bran * bran)
+        x_unfold = torch.permute(x_unfold, [0, 3, 1, 2, 4])
+        # x_unfold.shape = (batch_size, C_out, W_out, H_out, bran * bran)
 
         w1 = self.w1
         w1_shp = (w1.shape[0], 1, 1) + w1.shape[1:]

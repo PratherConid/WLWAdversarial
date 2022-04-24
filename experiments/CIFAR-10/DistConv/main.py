@@ -19,7 +19,7 @@ print(f"Using {device} device")
 model = CIFAR_10_DistConv().to(device)
 print(model)
 loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=5e-5)
 epochs = 20
 
 trd = train_dataloader(32)

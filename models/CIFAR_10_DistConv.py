@@ -20,7 +20,7 @@ class CIFAR_10_DistConv(nn.Module):
             Dist_Conv2D(1024, 1024, padding=2, p=p, conn_num=3), nn.LayerNorm((1024, 4, 4)),
             nn.MaxPool2d(2, 2),
             nn.Flatten(),
-            Uni_Linear(4096, 128), nn.ReLU(), nn.LayerNorm(128),
+            Uni_Linear(4096, 128), nn.LayerNorm(128), nn.ReLU(),
             Uni_Linear(128, 10), nn.Softmax(dim=-1)
         )
 
@@ -47,8 +47,10 @@ class CIFAR_10_Minimax(nn.Module):
             nn.MaxPool2d(2, 2),
             Minimax_Conv2D(1024, 1024, padding=2, branch=3), nn.LayerNorm((1024, 4, 4)),
             nn.MaxPool2d(2, 2),
+            Minimax_Conv2D(1024, 1024, padding=2, branch=3), nn.LayerNorm((1024, 2, 2)),
+            nn.MaxPool2d(2, 2),
             nn.Flatten(),
-            Uni_Linear(4096, 128), nn.ReLU(), nn.LayerNorm(128),
+            Uni_Linear(1024, 128), nn.LayerNorm(128), nn.ReLU(),
             Uni_Linear(128, 10), nn.Softmax(dim=-1)
         )
 

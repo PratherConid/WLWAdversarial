@@ -1,13 +1,36 @@
-from os import pardir
 import torch
 import math
 from torch import nn
 import numpy as np
 
-class Dist_Dense(nn.Module):
-    def __init__(self, size_in, size_out):
+class Static_Layernorm(nn.Module):
+    def __init__(self, gamma_dec=0.2, warmup=200):
         super().__init__()
-        self.size_in, self.size_out = size_in, size_out
+        assert gamma_dec > 0 and gamma_dec < 1
+        assert type(warmup) == int and warmup >= 1
+        self.std = 0
+        self.avg = 0
+        self.cnt = 0
+        self.gamma_dec = gamma_dec
+        self.warmup = warmup
+
+    def forward(self, x):
+        std = torch.sqrt(torch.var(x))
+        avg = torch.mean(x)
+        if self.cnt < self.warmup:
+            self.std = std
+            self.avg = avg
+            return (x - avg) / std
+        self.cnt += 1
+        alpha = (self.cnt - self.warmup) ** (-self.gamma_dec)
+        self.std = float(alpha * std + (1 - alpha) * self.std)
+        self.avg = float(alpha * avg + (1 - alpha) * self.avg)
+        return (x - self.avg) / self.std
+
+class Dist_Dense(nn.Module):
+    def __init__(self, size_in, size_out, p=torch.inf):
+        super().__init__()
+        self.size_in, self.size_out, self.p = size_in, size_out, p
         weights = torch.Tensor(size_out, size_in)
         self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
         bias = torch.Tensor(size_out)
@@ -21,7 +44,7 @@ class Dist_Dense(nn.Module):
 
     def forward(self, x):
         # x.shape = (batch_size, size_in)
-        w_minus_x = torch.cdist(x, self.weights.to(device=x.device), p=torch.inf)
+        w_minus_x = torch.cdist(x, self.weights.to(device=x.device), p=self.p)
         return torch.add(w_minus_x, self.bias.to(device=x.device))  # w times x + b
 
 class Uni_Linear(nn.Module):

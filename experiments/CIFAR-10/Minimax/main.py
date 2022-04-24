@@ -19,7 +19,7 @@ print(f"Using {device} device")
 model = CIFAR_10_Minimax().to(device)
 print(model)
 loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=5e-5)
+optimizer = torch.optim.Adam(model.parameters(), lr=2e-4)
 epochs = 20
 
 trd = train_dataloader(32)

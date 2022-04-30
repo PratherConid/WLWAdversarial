@@ -4,7 +4,7 @@ from torch import nn
 import numpy as np
 
 class Static_Layernorm(nn.Module):
-    def __init__(self, gamma=0.99):
+    def __init__(self, gamma=0.99, lock_cnt=torch.inf):
         super().__init__()
         assert gamma > 0 and gamma < 1
         self.std = 0
@@ -12,11 +12,14 @@ class Static_Layernorm(nn.Module):
         self.cnt = 0
         self.locked = False
         self.gamma = gamma
+        self.lock_cnt = lock_cnt
 
     def forward(self, x):
         std = torch.sqrt(torch.var(x))
         avg = torch.mean(x)
         self.cnt += 1
+        if self.cnt > self.lock_cnt:
+            self.locked = True
         if self.locked:
             return (x - self.avg) / self.std
         else:
@@ -131,7 +134,7 @@ class Dist_Conv2D(nn.Module):
 
 class Minimax_Conv2D(nn.Module):
     torch.nn.Conv2d
-    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, branch=3):
+    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, branch=3, abs=True):
         super().__init__()
         self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.branch =\
             in_channels, out_channels, padding, kernel_size, stride, branch
@@ -145,6 +148,7 @@ class Minimax_Conv2D(nn.Module):
         self.w2 = nn.Parameter(w2)
         bias = torch.Tensor(out_channels, 1, 1)
         self.bias = nn.Parameter(bias)
+        self.abs = abs
 
         # initialize weights and biases
         nn.init.kaiming_uniform_(self.w1, a=math.sqrt(5)) # weight init
@@ -179,10 +183,17 @@ class Minimax_Conv2D(nn.Module):
         w2_shp = (w2.shape[0], 1, 1) + w2.shape[1:]
         w2 = w2.reshape(w2_shp)
 
-        w_diff_x = x_unfold - w1
+        if self.abs:
+            w_diff_x = torch.abs(x_unfold - w1)
+        else:
+            w_diff_x = x_unfold - w1
         # w_diff_x.shape = (batch_size, C_out, W_out, H_out, bran * bran)
 
         ma = torch.amax(w_diff_x.reshape(w_diff_x.shape[:-1] + (self.branch, self.branch)), dim=-1)
         # ma.shape = (batch_size, C_out, W_out, H_out, bran)
-        mi = torch.amin(ma - w2, dim=-1)
+
+        if self.abs:
+            mi = torch.amin(torch.abs(ma - w2), dim=-1)
+        else:
+            mi = torch.amin(ma - w2, dim=-1)
         return mi

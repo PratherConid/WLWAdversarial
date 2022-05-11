@@ -24,11 +24,11 @@ loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 epochs = 20
 
-trd = train_dataloader(32)
-tsd = test_dataloader(32)
+trd = train_dataloader(64)
+tsd = test_dataloader(64)
 
 for t in range(epochs):
-    if t > 0:
+    if t >= 4:
         model.lock_SL()
     print(f"Epoch {t+1}\n-------------------------------")
     train(trd, model, loss_fn, optimizer)

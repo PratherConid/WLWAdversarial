@@ -3,31 +3,8 @@ import math
 from torch import nn
 import numpy as np
 
-class Static_Layernorm(nn.Module):
-    def __init__(self, gamma=0.99, lock_cnt=torch.inf):
-        super().__init__()
-        assert gamma > 0 and gamma < 1
-        self.std = 0
-        self.avg = 0
-        self.cnt = 0
-        self.locked = False
-        self.gamma = gamma
-        self.lock_cnt = lock_cnt
-
-    def forward(self, x):
-        std = torch.sqrt(torch.var(x))
-        avg = torch.mean(x)
-        self.cnt += 1
-        if self.cnt > self.lock_cnt:
-            self.locked = True
-        if self.locked:
-            return (x - self.avg) / self.std
-        else:
-            self.std = float((1 - self.gamma) * std + self.gamma * self.std)
-            self.avg = float((1 - self.gamma) * avg + self.gamma * self.avg)
-            return (x - avg) / std
-
 class Dist_Dense(nn.Module):
+
     def __init__(self, size_in, size_out, p=torch.inf):
         super().__init__()
         self.size_in, self.size_out, self.p = size_in, size_out, p
@@ -48,6 +25,7 @@ class Dist_Dense(nn.Module):
         return torch.add(w_minus_x, self.bias.to(device=x.device))  # w times x + b
 
 class Uni_Linear(nn.Module):
+
     def __init__(self, size_in, size_out):
         super().__init__()
         self.size_in, self.size_out = size_in, size_out
@@ -72,7 +50,7 @@ class Uni_Linear(nn.Module):
         return torch.add(w_times_x, self.bias)  # w times x + b
 
 class Dist_Conv2D_Dense(nn.Module):
-    torch.nn.Conv2d
+
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=0, conn_num=None):
         super().__init__()
         self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.conn_num =\
@@ -114,8 +92,31 @@ class Dist_Conv2D_Dense(nn.Module):
 
         return output + self.bias
 
+class Conv_Sample(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0):
+        super().__init__()
+        self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride =\
+            in_channels, out_channels, padding, kernel_size, stride
+        self.accl_sz = in_channels * kernel_size[0] * kernel_size[1]
+        self.conn = np.random.randint(0, self.accl_sz, self.out_channels).astype(np.int64)
+        self.conn = torch.from_numpy(self.conn)
+    
+    def forward(self, x):
+        pad_l = self.padding // 2
+        pad_r = self.padding - pad_l
+        x_pad = nn.functional.pad(x, (pad_l, pad_r, pad_l, pad_r), "replicate")
+        x_unfold = x_pad.unfold(-2, self.kernel_size[0], self.stride).unfold(-2, self.kernel_size[1], self.stride)
+        x_unfold = torch.permute(x_unfold, [0, 2, 3, 1, 4, 5])
+        # x_unfold.shape = (batch_size, W_out, H_out, in_channels, kernel_size, kernel_size)
+        x_unfold = x_unfold.reshape(x_unfold.shape[0:3] + (self.accl_sz,))
+        # x_unfold.shape = (batch_size, W_out, H_out, accl_sz)
+        conn = self.conn.to(device=x.device)
+        x_sample = x_unfold[..., conn]
+        # x_sample.shape = (batch_size, W_out, H_out, out_channels)
+        return torch.permute(x_sample, [0, 3, 1, 2])
+
 class Dist_Conv2D(nn.Module):
-    torch.nn.Conv2d
+
     def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, p=torch.inf, conn_num=None):
         super().__init__()
         self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.conn_num, self.p =\
@@ -144,6 +145,7 @@ class Dist_Conv2D(nn.Module):
         x_pad = nn.functional.pad(x, (pad_l, pad_r, pad_l, pad_r), "replicate")
         x_unfold = x_pad.unfold(-2, self.kernel_size[0], self.stride).unfold(-2, self.kernel_size[1], self.stride)
         x_unfold = torch.permute(x_unfold, [0, 2, 3, 1, 4, 5])
+        # x_unfold.shape = (batch_size, W_out, H_out, in_channels, kernel_size, kernel_size)
         if self.conn_num is not None:
             x_unfold = x_unfold.reshape(x_unfold.shape[0:3] + (self.accl_sz,))
             # x_unfold.shape = (batch_size, W_out, H_out, accl_sz)
@@ -169,14 +171,26 @@ class Dist_Conv2D(nn.Module):
         if self.p == torch.inf:
             w_diff_x = torch.amax(torch.abs(w_diff_x), dim=-1)
         elif self.p > 0:
-            w_diff_x = torch.norm(w_diff_x, dim=-1, p = self.p)
+            w_diff_x = torch.norm(w_diff_x, dim=-1, p=self.p)
         else:
             eps=0.01
             w_diff_x = torch.norm(torch.abs(w_diff_x) + eps, dim=-1, p=self.p)
         return torch.add(w_diff_x, self.bias)
 
+class DistConv_Res(nn.Module):
+
+    def __init__(self, in_channels, out_channels, res_portion, kernel_size=(3, 3), stride=1, padding=0, p=torch.inf, conn_num=None):
+        super().__init__()
+        assert 0 <= res_portion and res_portion < 1
+        res_n = int(res_portion * out_channels)
+        self.Dist_Conv2D = Dist_Conv2D(in_channels, out_channels - res_n, kernel_size, stride, padding, p, conn_num)
+        self.Conv_Sample = Conv_Sample(in_channels, res_n, kernel_size, stride, padding)
+
+    def forward(self, x):
+        return torch.concat([self.Dist_Conv2D(x), self.Conv_Sample(x)], dim=1)
+
 class Minimax_Conv2D(nn.Module):
-    torch.nn.Conv2d
+
     def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, branch=3, abs=True):
         super().__init__()
         self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.branch =\

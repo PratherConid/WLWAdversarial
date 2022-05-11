@@ -1,6 +1,5 @@
 from numpy import product
-import torch
-from models.layers.Lip_Layer import Static_Layernorm 
+from models.layers.Basic_Layers import Static_Layernorm 
 
 def count_parameters(model):
     return sum([p.numel() for p in model.parameters()])

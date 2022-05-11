@@ -1,6 +1,7 @@
 import torch
 from torch import nn
-from .layers.Lip_Layer import Dist_Conv2D, Minimax_Conv2D, Uni_Linear, Static_Layernorm
+from .layers.Lip_Layer import Dist_Conv2D, Minimax_Conv2D, Uni_Linear
+from .layers.Basic_Layers import Static_Layernorm
 
 class CIFAR_10_DistConv(nn.Module):
     def __init__(self, conn_num, p=torch.inf):
@@ -8,21 +9,16 @@ class CIFAR_10_DistConv(nn.Module):
         self.flatten = nn.Flatten()
         self.linear_cnn_stack = nn.Sequential(
             Dist_Conv2D(3, 256, padding=2, p=p, conn_num=conn_num),
-            Dist_Conv2D(256, 256, padding=2, p=p, conn_num=conn_num), Static_Layernorm(),
+            Dist_Conv2D(256, 256, padding=2, p=p, conn_num=conn_num), Static_Layernorm(ax=(0, -1, -2)),
             nn.MaxPool2d(2, 2),
             Dist_Conv2D(256, 1024, padding=2, p=p, conn_num=conn_num),
-            Dist_Conv2D(1024, 1024, padding=2, p=p, conn_num=conn_num), Static_Layernorm(),
+            Dist_Conv2D(1024, 1024, padding=2, p=p, conn_num=conn_num), Static_Layernorm(ax=(0, -1, -2)),
             nn.MaxPool2d(2, 2),
-            Dist_Conv2D(1024, 4096, padding=2, p=p, conn_num=conn_num),
-            Dist_Conv2D(4096, 4096, padding=2, p=p, conn_num=conn_num), Static_Layernorm(),
-            Dist_Conv2D(4096, 2048, padding=2, p=p, conn_num=conn_num),
-            Dist_Conv2D(2048, 1024, padding=2, p=p, conn_num=conn_num), Static_Layernorm(),
-            nn.MaxPool2d(2, 2),
-            Dist_Conv2D(1024, 256, padding=2, p=p, conn_num=8),
-            Dist_Conv2D(256, 64, padding=2, p=p, conn_num=8), Static_Layernorm(),
+            Dist_Conv2D(1024, 512, padding=2, p=p, conn_num=2 * conn_num),
+            Dist_Conv2D(512, 256, padding=2, p=p, conn_num=2 * conn_num), Static_Layernorm(ax=(0, -1, -2)),
             nn.MaxPool2d(2, 2),
             nn.Flatten(),
-            Uni_Linear(256, 80), Static_Layernorm(), nn.ReLU(),
+            Uni_Linear(4096, 80), Static_Layernorm(), nn.ReLU(),
             Uni_Linear(80, 10), nn.Softmax(dim=-1)
         )
 
@@ -46,13 +42,13 @@ class CIFAR_10_Minimax(nn.Module):
         super(CIFAR_10_Minimax, self).__init__()
         self.flatten = nn.Flatten()
         self.linear_cnn_stack = nn.Sequential(
-            Minimax_Conv2D(3, 512, padding=2, branch=conn_num, abs=abs), Static_Layernorm(),
+            Minimax_Conv2D(3, 512, padding=2, branch=conn_num, abs=abs), Static_Layernorm(ax=(0, -1, -2)),
             nn.MaxPool2d(2, 2),
-            Minimax_Conv2D(512, 1024, padding=2, branch=conn_num, abs=abs), Static_Layernorm(),
+            Minimax_Conv2D(512, 1024, padding=2, branch=conn_num, abs=abs), Static_Layernorm(ax=(0, -1, -2)),
             nn.MaxPool2d(2, 2),
-            Minimax_Conv2D(1024, 1024, padding=2, branch=conn_num, abs=abs), Static_Layernorm(),
+            Minimax_Conv2D(1024, 1024, padding=2, branch=conn_num, abs=abs), Static_Layernorm(ax=(0, -1, -2)),
             nn.MaxPool2d(2, 2),
-            Minimax_Conv2D(1024, 512, padding=2, branch=conn_num, abs=abs), Static_Layernorm(),
+            Minimax_Conv2D(1024, 512, padding=2, branch=conn_num, abs=abs), Static_Layernorm(ax=(0, -1, -2)),
             nn.MaxPool2d(2, 2),
             nn.Flatten(),
             Uni_Linear(2048, 80), Static_Layernorm(), nn.ReLU(),

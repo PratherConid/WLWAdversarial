@@ -93,6 +93,7 @@ class Dist_Conv2D_Dense(nn.Module):
         return output + self.bias
 
 class Conv_Sample(nn.Module):
+    # random sample from input
     def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0):
         super().__init__()
         self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride =\
@@ -176,6 +177,57 @@ class Dist_Conv2D(nn.Module):
             eps=0.01
             w_diff_x = torch.norm(torch.abs(w_diff_x) + eps, dim=-1, p=self.p)
         return torch.add(w_diff_x, self.bias)
+
+class Uni_Conv2D(nn.Module):
+
+    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, p=torch.inf, conn_num=None):
+        super().__init__()
+        self.in_channels, self.out_channels, self.padding, self.kernel_size, self.stride, self.conn_num, self.p =\
+            in_channels, out_channels, padding, kernel_size, stride, conn_num, p
+        self.accl_sz = in_channels * kernel_size[0] * kernel_size[1]
+        if conn_num is not None:
+            weights = torch.Tensor(out_channels, self.conn_num)
+            self.conn = np.random.randint(0, self.accl_sz, (self.out_channels, self.conn_num)).astype(np.int64)
+            self.conn = nn.functional.one_hot(torch.from_numpy(self.conn), num_classes=self.accl_sz)
+            self.conn = self.conn.type(torch.float32)
+            # self.conn.shape = (self.out_channels, self.conn_num, self.accl_sz)
+        else:
+            weights = torch.Tensor(self.accl_sz, out_channels)
+        self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
+        bias = torch.Tensor(out_channels, 1, 1)
+        self.bias = nn.Parameter(bias)
+
+        # initialize weights and biases
+        nn.init.kaiming_uniform_(self.weights, a=math.sqrt(5)) # weight init
+        fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weights)
+        bound = 1 / math.sqrt(fan_in)
+        nn.init.uniform_(self.bias, -bound, bound)  # bias init
+
+    def forward(self, x):
+        pad_l = self.padding // 2
+        pad_r = self.padding - pad_l
+        x_pad = nn.functional.pad(x, (pad_l, pad_r, pad_l, pad_r), "replicate")
+        x_unfold = x_pad.unfold(-2, self.kernel_size[0], self.stride).unfold(-2, self.kernel_size[1], self.stride)
+        x_unfold = torch.permute(x_unfold, [0, 2, 3, 1, 4, 5])
+        # x_unfold.shape = (batch_size, W_out, H_out, in_channels, kernel_size, kernel_size)
+        if self.conn_num is not None:
+            x_unfold = x_unfold.reshape(x_unfold.shape[0:3] + (self.accl_sz,))
+            # x_unfold.shape = (batch_size, W_out, H_out, accl_sz)
+            conn = self.conn.to(device=x.device)
+            # conn.shape = (C_out, conn_num, accl_sz)
+            w = torch.einsum("Cc,Cca->aC", self.weights, conn)
+            # w.shape = (accl_sz, C_out)
+        else:
+            x_unfold = x_unfold.reshape(x_unfold.shape[0:3] + (self.accl_sz,))
+            # x_unfold.shape = (batch_size, W_out, H_out, accl_sz)
+
+        eps = 0.01
+        sumw = torch.sum(torch.abs(w), dim=0) + eps
+        broadcasted_sumw = sumw.broadcast_to([self.accl_sz, self.out_channels])
+        wxb = torch.matmul(x_unfold, w / broadcasted_sumw)
+        # wxb.shape = (batch_size, W_out, H_out, C_out)
+        wxb = torch.permute(wxb, [0, 3, 1, 2])
+        return torch.add(wxb, self.bias)
 
 class Minimax_Conv2D(nn.Module):
 

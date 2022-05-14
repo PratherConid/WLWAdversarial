@@ -8,7 +8,7 @@ import os
 BASE_DIR = "\\".join(os.path.abspath(__file__).split('\\')[:-4])
 print(BASE_DIR)
 sys.path.append(BASE_DIR)
-from models.CIFAR_10_DistNets import CIFAR_10_DistConv
+from models.CIFAR_10_DistNets import CIFAR_10_Dis2Dis3
 from model_property import static_layernorm_lip_const, count_parameters
 from train import train, test
 
@@ -17,7 +17,7 @@ print(f"Using {device} device")
 
 
 
-model = CIFAR_10_DistConv(3).to(device)
+model = CIFAR_10_Dis2Dis3(3).to(device)
 print(model)
 print("Number of parameters:", count_parameters(model))
 loss_fn = nn.CrossEntropyLoss()
@@ -35,9 +35,9 @@ for t in range(epochs):
     test(tsd, model, loss_fn)
     print("Lip Const:", static_layernorm_lip_const(model))
     if t % 4 == 3:
-        torch.save(model.state_dict(), "experiments/CIFAR-10/DistConv/epoch_" + str(t) + ".pt")
+        torch.save(model.state_dict(), "experiments/CIFAR-10/Dis2Dis3/epoch_" + str(t) + ".pt")
 print("Done!")
 
 ## run: 
 ## cd <path>/WLWAdversarial
-## nohup stdbuf -oL python -u experiments/CIFAR-10/DistConv/main.py >> experiments/CIFAR-10/DistConv/result.txt &
+## nohup stdbuf -oL python -u experiments/CIFAR-10/Dis2Dis3/main.py >> experiments/CIFAR-10/Dis2Dis3/result.txt &

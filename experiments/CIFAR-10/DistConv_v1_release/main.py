@@ -35,9 +35,9 @@ for t in range(epochs):
     test(tsd, model, loss_fn)
     print("Lip Const:", static_layernorm_lip_const(model))
     if t % 4 == 3:
-        torch.save(model.state_dict(), "experiments/CIFAR-10/Classical/epoch_" + str(t) + ".pt")
+        torch.save(model.state_dict(), "experiments/CIFAR-10/DistConv_v1_release/epoch_" + str(t) + ".pt")
 print("Done!")
 
 ## run: 
 ## cd <path>/WLWAdversarial
-## nohup stdbuf -oL python -u experiments/CIFAR-10/DistConv/main.py >> experiments/CIFAR-10/DistConv/result.txt &
+## nohup stdbuf -oL python -u experiments/CIFAR-10/DistConv_v1_release/main.py >> experiments/CIFAR-10/DistConv_v1_release/result.txt &

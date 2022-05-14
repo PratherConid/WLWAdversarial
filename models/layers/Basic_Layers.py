@@ -6,14 +6,12 @@ class MovingAverage(nn.Module):
     def __init__(self, gamma=0.99, lock_cnt=torch.inf, ax=None):
         super().__init__()
         assert gamma > 0 and gamma < 1
-        self.std = 0
         self.avg = None
         self.cnt = 0
         self.locked = False
         self.gamma = gamma
         self.lock_cnt = lock_cnt
         self.ax = ax
-        self.std = 1
 
     def forward(self, x):
         if self.ax is not None:
@@ -46,6 +44,7 @@ class Static_Layernorm(nn.Module):
         self.gamma = gamma
         self.lock_cnt = lock_cnt
         self.ax = ax
+        self.last_std = 0
 
     def forward(self, x):
         x_dim = len(x.shape)
@@ -60,8 +59,10 @@ class Static_Layernorm(nn.Module):
         if self.cnt > self.lock_cnt:
             self.locked = True
         if self.locked:
+            self.last_std = torch.inf
             return (x - self.avg) / self.std
         else:
+            self.last_std = std
             self.std = ((1 - self.gamma) * std + self.gamma * self.std).detach()
             if self.avg is None:
                 self.avg = ((1 - self.gamma) * avg).detach()

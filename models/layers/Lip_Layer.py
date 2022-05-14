@@ -177,18 +177,6 @@ class Dist_Conv2D(nn.Module):
             w_diff_x = torch.norm(torch.abs(w_diff_x) + eps, dim=-1, p=self.p)
         return torch.add(w_diff_x, self.bias)
 
-class DistConv_Res(nn.Module):
-
-    def __init__(self, in_channels, out_channels, res_portion, kernel_size=(3, 3), stride=1, padding=0, p=torch.inf, conn_num=None):
-        super().__init__()
-        assert 0 <= res_portion and res_portion < 1
-        res_n = int(res_portion * out_channels)
-        self.Dist_Conv2D = Dist_Conv2D(in_channels, out_channels - res_n, kernel_size, stride, padding, p, conn_num)
-        self.Conv_Sample = Conv_Sample(in_channels, res_n, kernel_size, stride, padding)
-
-    def forward(self, x):
-        return torch.concat([self.Dist_Conv2D(x), self.Conv_Sample(x)], dim=1)
-
 class Minimax_Conv2D(nn.Module):
 
     def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, padding=0, branch=3, abs=True):

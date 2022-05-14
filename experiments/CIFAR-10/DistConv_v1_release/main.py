@@ -8,7 +8,7 @@ import os
 BASE_DIR = "\\".join(os.path.abspath(__file__).split('\\')[:-4])
 print(BASE_DIR)
 sys.path.append(BASE_DIR)
-from models.CIFAR_10_DistConv import CIFAR_10_DistConv
+from models.CIFAR_10_DistConv_v1_release import CIFAR_10_DistConv
 from model_property import static_layernorm_lip_const, count_parameters
 from train import train, test
 

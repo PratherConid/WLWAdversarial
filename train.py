@@ -1,7 +1,8 @@
 import torch
 import numpy as np
+from model_property import static_layernorm_lip_loss
 
-def train(dataloader, model, loss_fn, optimizer, device='cuda'):
+def train(dataloader, model, loss_fn, optimizer, device='cuda', lip_loss_coef=None):
     size = len(dataloader.dataset)
     model.train()
     for batch, (X, y) in enumerate(dataloader):
@@ -10,6 +11,8 @@ def train(dataloader, model, loss_fn, optimizer, device='cuda'):
         # Compute prediction error
         pred = model(X)
         loss = loss_fn(pred, y)
+        if lip_loss_coef is not None:
+            loss += lip_loss_coef * static_layernorm_lip_loss(model)
 
         # Backpropagation
         optimizer.zero_grad()

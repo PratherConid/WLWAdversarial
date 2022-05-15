@@ -1,9 +1,6 @@
 data/
-experiments/CIFAR-10/Classical/epoch*
-experiments/CIFAR-10/GradLoss/epoch*
-experiments/CIFAR-10/DistConv/epoch*
-experiments/CIFAR-10/DistConv_v1_release/epoch*
 */__pycache__/*
+*.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

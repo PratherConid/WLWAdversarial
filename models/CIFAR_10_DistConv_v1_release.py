@@ -6,27 +6,27 @@ from .layers.Basic_Layers import Static_Layernorm, MovingAverage
 class CIFAR_10_DistConv(nn.Module):
     def __init__(self, conn_num, p=torch.inf):
         super(CIFAR_10_DistConv, self).__init__()
-        self.DC1_1 = Dist_Conv2D(3, 256, padding=2, p=p, conn_num=conn_num)
+        self.DC1_1 = Dist_Conv2D(3, 256, p=p, conn_num=conn_num)
         self.MA1_1 = MovingAverage(ax=(0, -1, -2))
-        self.DC1_2 = Dist_Conv2D(256, 256, padding=2, p=p, conn_num=conn_num)
+        self.DC1_2 = Dist_Conv2D(256, 256, p=p, conn_num=conn_num)
         self.SL1 = Static_Layernorm(ax=(0, -1, -2))
         self.mp1 = nn.MaxPool2d(2, 2)
 
-        self.DC2_1 = Dist_Conv2D(256, 1024, padding=2, p=p, conn_num=conn_num)
+        self.DC2_1 = Dist_Conv2D(256, 1024, p=p, conn_num=conn_num)
         self.MA2_1 = MovingAverage(ax=(0, -1, -2))
-        self.DC2_2 = Dist_Conv2D(1024, 1024, padding=2, p=p, conn_num=conn_num)
+        self.DC2_2 = Dist_Conv2D(1024, 1024, p=p, conn_num=conn_num)
         self.SL2 = Static_Layernorm(ax=(0, -1, -2))
         self.mp2 = nn.MaxPool2d(2, 2)
 
-        self.DC3_1 = Dist_Conv2D(1280, 2048, padding=2, p=p, conn_num=conn_num)
+        self.DC3_1 = Dist_Conv2D(1280, 2048, p=p, conn_num=conn_num)
         self.MA3_1 = MovingAverage()
-        self.DC3_2 = Dist_Conv2D(2048, 2048, padding=2, p=p, conn_num=conn_num)
+        self.DC3_2 = Dist_Conv2D(2048, 2048, p=p, conn_num=conn_num)
         self.SL3 = Static_Layernorm()
         self.mp3 = nn.MaxPool2d(2, 2)
 
-        self.DC4_1 = Dist_Conv2D(3328, 2048, padding=2, p=p, conn_num=conn_num)
+        self.DC4_1 = Dist_Conv2D(3328, 2048, p=p, conn_num=conn_num)
         self.MA4_1 = MovingAverage()
-        self.DC4_2 = Dist_Conv2D(2048, 1024, padding=2, p=p, conn_num=2 * conn_num)
+        self.DC4_2 = Dist_Conv2D(2048, 1024, p=p, conn_num=2 * conn_num)
         self.SL4 = Static_Layernorm()
         self.mp4 = nn.MaxPool2d(2, 2)
 

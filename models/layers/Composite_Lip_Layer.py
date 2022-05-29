@@ -36,12 +36,12 @@ class Dis1Dis3(nn.Module):
 
 class DisUni(nn.Module):
 
-    def __init__(self, in_channels, out_channels, conn_dis=3, conn_uni=6, ker_dis=(3, 3), ker_uni=(3, 3), p=torch.inf):
+    def __init__(self, in_channels, out_channels, conn_dis=3, conn_uni=6, ker_dis=(3, 3), ker_uni=(3, 3), extra_pad=0, stride=1, p=torch.inf):
         super().__init__()
         och_1 = out_channels * 2 // 3
         och_2 = out_channels - och_1
-        self.Dis = Dist_Conv2D(in_channels, och_1, kernel_size=ker_dis, p=p, conn_num=conn_dis)
-        self.Uni = Uni_Conv2D(in_channels, och_2, kernel_size=ker_uni, conn_num=conn_uni)
+        self.Dis = Dist_Conv2D(in_channels, och_1, kernel_size=ker_dis, p=p, conn_num=conn_dis, extra_pad=extra_pad, stride=stride)
+        self.Uni = Uni_Conv2D(in_channels, och_2, kernel_size=ker_uni, conn_num=conn_uni, extra_pad=extra_pad, stride=stride)
 
     def forward(self, x):
         Dis = self.Dis(x)

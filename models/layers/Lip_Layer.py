@@ -126,10 +126,10 @@ class Dist_Conv2D_1(nn.Module):
 
 class Dist_Conv2D(nn.Module):
 
-    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, p=torch.inf, conn_num=3):
+    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, extra_pad=0, p=torch.inf, conn_num=3):
         super().__init__()
-        self.in_channels, self.out_channels, self.kernel_size, self.stride, self.conn_num, self.p =\
-            in_channels, out_channels, kernel_size, stride, conn_num, p
+        self.in_channels, self.out_channels, self.kernel_size, self.stride, self.extra_pad, self.conn_num, self.p =\
+            in_channels, out_channels, kernel_size, stride, extra_pad, conn_num, p
         self.accl_sz = in_channels * kernel_size[0] * kernel_size[1]
         if conn_num is not None:
             weights = torch.Tensor(out_channels, self.conn_num)
@@ -149,10 +149,10 @@ class Dist_Conv2D(nn.Module):
         nn.init.uniform_(self.bias, -bound, bound)  # bias init
 
     def forward(self, x):
-        pad_l = (self.kernel_size[0] - 1) // 2
-        pad_r = self.kernel_size[0] - 1 - pad_l
-        pad_t = (self.kernel_size[1] - 1) // 2
-        pad_b = self.kernel_size[1] - 1 - pad_t
+        pad_l = (self.kernel_size[0] + self.extra_pad - 1) // 2
+        pad_r = self.kernel_size[0] + self.extra_pad - 1 - pad_l
+        pad_t = (self.kernel_size[1] + self.extra_pad - 1) // 2
+        pad_b = self.kernel_size[1] + self.extra_pad - 1 - pad_t
         x_pad = nn.functional.pad(x, (pad_t, pad_b, pad_l, pad_r), "replicate")
 
         x_unfold = x_pad.unfold(-2, self.kernel_size[0], self.stride).unfold(-2, self.kernel_size[1], self.stride)
@@ -191,10 +191,10 @@ class Dist_Conv2D(nn.Module):
 
 class Uni_Conv2D(nn.Module):
 
-    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, p=torch.inf, conn_num=3):
+    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, extra_pad=0, p=torch.inf, conn_num=3):
         super().__init__()
-        self.in_channels, self.out_channels, self.kernel_size, self.stride, self.conn_num, self.p =\
-            in_channels, out_channels, kernel_size, stride, conn_num, p
+        self.in_channels, self.out_channels, self.kernel_size, self.stride, self.extra_pad, self.conn_num, self.p =\
+            in_channels, out_channels, kernel_size, stride, extra_pad, conn_num, p
         self.accl_sz = in_channels * kernel_size[0] * kernel_size[1]
         if conn_num is not None:
             weights = torch.Tensor(out_channels, self.conn_num)
@@ -215,10 +215,10 @@ class Uni_Conv2D(nn.Module):
         nn.init.uniform_(self.bias, -bound, bound)  # bias init
 
     def forward(self, x):
-        pad_l = (self.kernel_size[0] - 1) // 2
-        pad_r = self.kernel_size[0] - 1 - pad_l
-        pad_t = (self.kernel_size[1] - 1) // 2
-        pad_b = self.kernel_size[1] - 1 - pad_t
+        pad_l = (self.kernel_size[0] + self.extra_pad - 1) // 2
+        pad_r = self.kernel_size[0] + self.extra_pad - 1 - pad_l
+        pad_t = (self.kernel_size[1] + self.extra_pad - 1) // 2
+        pad_b = self.kernel_size[1] + self.extra_pad - 1 - pad_t
         x_pad = nn.functional.pad(x, (pad_t, pad_b, pad_l, pad_r), "replicate")
 
         x_unfold = x_pad.unfold(-2, self.kernel_size[0], self.stride).unfold(-2, self.kernel_size[1], self.stride)
@@ -245,10 +245,10 @@ class Uni_Conv2D(nn.Module):
 
 class Minimax_Conv2D(nn.Module):
 
-    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, branch=3, abs=True):
+    def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=1, extra_pad=0, branch=3, abs=True):
         super().__init__()
-        self.in_channels, self.out_channels, self.kernel_size, self.stride, self.branch =\
-            in_channels, out_channels, kernel_size, stride, branch
+        self.in_channels, self.out_channels, self.kernel_size, self.stride, self.extra_pad, self.branch =\
+            in_channels, out_channels, kernel_size, stride, extra_pad, branch
         self.accl_sz = in_channels * kernel_size[0] * kernel_size[1]
         self.conn = np.random.randint(0, self.accl_sz, self.out_channels * self.branch * self.branch).astype(np.int64)
         self.conn = torch.from_numpy(self.conn)
@@ -269,10 +269,10 @@ class Minimax_Conv2D(nn.Module):
         nn.init.uniform_(self.bias, -bound, bound)  # bias init
 
     def forward(self, x):
-        pad_l = (self.kernel_size[0] - 1) // 2
-        pad_r = self.kernel_size[0] - 1 - pad_l
-        pad_t = (self.kernel_size[1] - 1) // 2
-        pad_b = self.kernel_size[1] - 1 - pad_t
+        pad_l = (self.kernel_size[0] + self.extra_pad - 1) // 2
+        pad_r = self.kernel_size[0] + self.extra_pad - 1 - pad_l
+        pad_t = (self.kernel_size[1] + self.extra_pad - 1) // 2
+        pad_b = self.kernel_size[1] + self.extra_pad - 1 - pad_t
         x_pad = nn.functional.pad(x, (pad_t, pad_b, pad_l, pad_r), "replicate")
 
         x_unfold = x_pad.unfold(-2, self.kernel_size[0], self.stride).unfold(-2, self.kernel_size[1], self.stride)
